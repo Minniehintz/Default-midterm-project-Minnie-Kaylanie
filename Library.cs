@@ -1,27 +1,48 @@
-class Test
+class Library
 {
-    static void Main(string[] args)
+    private List<Book> books = new List<Book>();
+
+    public void AddBook(Book b)
     {
-        Library lib = new Library();
+        books.Add(b);
+    }
 
-        // TODO: Load books here (file reading)
+    public List<Book> GetAllBooks() => books;
 
-        while (true)
+    public List<Book> GetAvailableBooks() =>
+        books.Where(b => !b.IsCheckedOut).ToList();
+
+    public List<Book> GetBooksByAuthor(string author) =>
+        books.Where(b => b.Author.ToLower() == author.ToLower()).ToList();
+
+    public List<Book> GetBooksAfterYear(int year) =>
+        books.Where(b => b.YearPublished >= year).ToList();
+
+    public void SortByPageLength() =>
+        books = books.OrderBy(b => b.PageLength).ToList();
+
+    public Book SearchByTitle(string title) =>
+        books.FirstOrDefault(b => b.Title.ToLower() == title.ToLower());
+
+    public bool CheckOutBook(string title)
+    {
+        var book = SearchByTitle(title);
+        if (book != null && !book.IsCheckedOut)
         {
-            Console.WriteLine("\n===== Library Menu =====");
-            Console.WriteLine("1. View All Books");
-            Console.WriteLine("2. View Available Books");
-            Console.WriteLine("3. Search by Author");
-            Console.WriteLine("4. Filter by Year");
-            Console.WriteLine("5. Sort by Page Length");
-            Console.WriteLine("6. Search by Title");
-            Console.WriteLine("7. Check Out a Book");
-            Console.WriteLine("8. Return a Book");
-            Console.WriteLine("9. Quit");
-            Console.Write("Enter choice: ");
-
-            string choice = Console.ReadLine();
-
+            book.IsCheckedOut = true;
+            return true;
         }
+        return false;
+    }
+
+    public bool ReturnBook(string title)
+    {
+        var book = SearchByTitle(title);
+        if (book != null && book.IsCheckedOut)
+        {
+            book.IsCheckedOut = false;
+            return true;
+        }
+        return false;
     }
 }
