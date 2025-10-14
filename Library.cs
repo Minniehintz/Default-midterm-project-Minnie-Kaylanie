@@ -1,15 +1,27 @@
-﻿
-public static class Books
+class Test
 {
-    private static int Main(string[] args)
+    static void Main(string[] args)
     {
-        String Title;
-        String Author;
-        String Genre;
-        int PageLength;
-        int YearPublished;
-        bool IsCheckedOut;
+        Library lib = new Library();
 
-        //invoke .ToString() to format book info for printing
+        // TODO: Load books here (file reading)
+
+        while (true)
+        {
+            Console.WriteLine("\n===== Library Menu =====");
+            Console.WriteLine("1. View All Books");
+            Console.WriteLine("2. View Available Books");
+            Console.WriteLine("3. Search by Author");
+            Console.WriteLine("4. Filter by Year");
+            Console.WriteLine("5. Sort by Page Length");
+            Console.WriteLine("6. Search by Title");
+            Console.WriteLine("7. Check Out a Book");
+            Console.WriteLine("8. Return a Book");
+            Console.WriteLine("9. Quit");
+            Console.Write("Enter choice: ");
+
+            string choice = Console.ReadLine();
+
+        }
     }
 }
