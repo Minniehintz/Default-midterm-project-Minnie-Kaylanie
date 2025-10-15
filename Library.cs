@@ -2,45 +2,113 @@ class Library
 {
     private List<Book> books = new List<Book>();
 
-    public void AddBook(Book b)
+    // Add a book to list
+    public void AddBook(Book b) 
     {
         books.Add(b);
     }
 
-    public List<Book> GetAllBooks() => books;
-
-    public List<Book> GetAvailableBooks() =>
-        books.Where(b => !b.IsCheckedOut).ToList();
-
-    public List<Book> GetBooksByAuthor(string author) =>
-        books.Where(b => b.Author.ToLower() == author.ToLower()).ToList();
-
-    public List<Book> GetBooksAfterYear(int year) =>
-        books.Where(b => b.YearPublished >= year).ToList();
-
-    public void SortByPageLength() =>
-        books = books.OrderBy(b => b.PageLength).ToList();
-
-    public Book SearchByTitle(string title) =>
-        books.FirstOrDefault(b => b.Title.ToLower() == title.ToLower());
-
-    public bool CheckOutBook(string title)
+    // Return all books
+    public List<Book> GetAllBooks() 
     {
-        var book = SearchByTitle(title);
-        if (book != null && !book.IsCheckedOut)
+        return books;
+    }
+
+    // Return only available books
+    public List<Book> GetAvailableBooks()
+    {
+        List<Book> availableBook = new List<Book>();
+
+        foreach (Book b in books)
         {
-            book.IsCheckedOut = true;
+            if (b.IsCheckedOut == false)
+            {
+                availableBook.Add(b);
+            }
+        }
+        return availableBook;
+    }
+
+    // Return books by author
+    public List<Book> GetBooksByAuthor(string author) 
+    {
+        List<Book> result = new List<Book>();
+        foreach (Book b in books)
+        {
+            if(b.Author.Equals(author))
+            {
+                result.Add(b); 
+            }
+        }
+        return result;  
+    }
+
+    // Filter by year
+    public List<Book> GetBooksAfterYear(int year) 
+    { 
+        List <Book> result = new List<Book>();
+
+        foreach (Book b in books)
+        {
+            if (b.YearPublished >= year)
+            {
+                result.Add(b);
+            }
+        }
+        return result;
+    }
+
+    // Sort by page length
+    public void SortByPageLength() 
+    {
+        for (int i = 0; i < books.Count - 1; i++)
+        {
+            for (int j = 0; j < books.Count; j++)
+            {
+                if (books[j].PageLength > books[j + 1].PageLength)
+                {
+                    Book temp = books[j];
+                    books[j] = books[j + 1];
+                    books[j + 1] = temp;
+                }
+            }
+        }
+    }
+
+    // Find specific book by title
+    public Book SearchByTitle(string title) 
+    {
+        foreach (Book b in books)
+        {
+            if (b.Title.Equals(title))
+            {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    // Check out a book
+    public bool CheckOutBook(string title) 
+    {
+        Book b= SearchByTitle(title);
+
+        if (b!=null && b.IsCheckedOut == false)
+        {
+            b.IsCheckedOut = true;
             return true;
         }
         return false;
     }
 
-    public bool ReturnBook(string title)
+    // Return a book
+    public bool ReturnBook(string title) 
     {
-        var book = SearchByTitle(title);
-        if (book != null && book.IsCheckedOut)
+        Book b = SearchByTitle(title);
+
+        if (b!= null && b.IsCheckedOut == true)
         {
-            book.IsCheckedOut = false;
+            b.IsCheckedOut = false;
             return true;
         }
         return false;
