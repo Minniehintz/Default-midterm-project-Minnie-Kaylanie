@@ -10,39 +10,66 @@ class Test
 
         string path = "books.csv";
 
-        // Check if file exists
-        if (File.Exists(path))
+        try
         {
+        // Check if file exists
+            if (File.Exists(path))
+            {
+                Console.WriteLine("File does not exist: " + path);
+                return;
+            }
+            
             Console.WriteLine("File Exists\n");
 
             // Load the books from the CSV file
             string[] lines = File.ReadAllLines(path);
 
+            if (lines.Length <= 1)
+            {
+                Console.WriteLine("CSV has no data rows (only header).");
+                return;
+            }
+
             // Skip the header line (first line)
             for (int i = 1; i < lines.Length; i++)
             {
+                string line  lines[i];
+                if (string.IsNullOrWhiteSpace(line))
+                    
                 string[] parts = lines[i].Split(',');
-
-                if (parts.Length == 6)
+                if (parts.Length < 6)
                 {
-                    string title = parts[0].Trim();
-                    string author = parts[1].Trim();
-                    string genre = parts[2].Trim();
-                    int pages = int.Parse(parts[3].Trim());
-                    int year = int.Parse(parts[4].Trim());
-                    bool isCheckedOut = bool.Parse(parts[5].Trim());
-
-                    Book b = new Book(title, author, genre, pages, year, isCheckedOut);
-                    lib.AddBook(b);
+                    Console.WriteLine($"Skipping line {i + 1}: expected 6 columns, got {parts.Length}");
+                    continue;
                 }
-            }
+                                      
+                string title = parts[0].Trim();
+                string author = parts[1].Trim();
+                string genre = parts[2].Trim();
 
+                if (!int.TryParse(parts[3].Trim(), out int pages))\
+                {
+                    Console.WriteLine($"Skipping line {i + 1}: PageLength is not a number.");
+                    continue;
+                }
+                if (!int.TryParse(parts[4].Trim(), out int year))
+                {
+                    Console.WriteLine($"Skipping line {i + 1}: YearPublished is not a number.");
+                    continue;
+                }
+                if (!int.TryParse(parts[5].Trim(), out bool isCheckedOut))
+                {
+                    Console.WriteLine($"Skipping line {i + 1}: IsCheckedOut must be true/false.");
+                    continue;
+                }
+                lib.Addbook(new Book(title, author, genre, pages, year, isCheckedOut));
+            }
             Console.WriteLine("Library data loaded successfully!");
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("File does not exist");
-            return; // stops program if the file can’t be found
+            Console.WriteLine("Error loading CSV: " + ex.Message);
+            return;
         }
 
         // Main menu loop
@@ -61,75 +88,79 @@ class Test
             Console.WriteLine("0. Quit");
             Console.Write("Enter choice: ");
 
-            string choice = Console.ReadLine();
+            string choice = (Console.ReadLine() ?? "").Trim.ToLowerInvariant();
 
-            switch (choice)
+            try
             {
-                case "1": // view all books
-                    Console.WriteLine("-- Viewing All Books --\n");
-                    foreach (Book b in lib.GetAllBooks())
-                        Console.WriteLine(b);
-                    break;
+                switch (choice)
+                {
+                    case "1":
+                        Console.WriteLine("-- Viewing All Books --\n");
+                        PrintList(lib.GetAllBooks());
+                        break;
 
-                case "2": // view available books
-                    Console.WriteLine("-- Viewing Available Books --\n");
-                    foreach (Book b in lib.GetAvailableBooks())
-                        Console.WriteLine(b);
-                    break;
+                    case "2":
+                        Console.WriteLine("-- Viewing Available Books --\n");
+                        PrintList(lib.GetAvailableBooks());
+                        break;
 
-                case "3": // search by author
-                    Console.Write("Enter Author name: ");
-                    string author = Console.ReadLine();
-                    Console.WriteLine();
+                    case "3":
+                        Console.Write("Enter part of the author name: ");
+                        string author = (Console.ReadLine() ?? "").Trim();
+                        if (author.Length == 0)
+                        {
+                            Console.WriteLine("Author cannot be empty.");
+                            break;
+                        }
+                        List<Book> authorResults = lib.GetBooksByAuthor(author);
+                        if (authorResults.Count == 0)
+                            Console.WriteLine("No books by that author.");
+                        else
+                            PrintList(authorResults);
+                        break;
 
-                    List<Book> authorResults = lib.GetBooksByAuthor(author);
+                    case "4":
+                        Console.Write("Enter minimum year: ");
+                        string rawYear = Console.ReadLine() ?? "";
+                        if (int.TryParse(rawYear, out int year))
+                            PrintList(lib.GetBooksAfterYear(year));
+                        else
+                            Console.WriteLine("Invalid year — please enter a number.");
+                        break;
 
-                    if (authorResults.Count == 0)
-                        Console.WriteLine("The Library doesn't have any books by that author");
-                    else
-                        foreach (Book b in lib.GetBooksByAuthor(author))
-                            Console.WriteLine(b);
-                    break;
+                    case "5":
+                        Console.WriteLine("-- Sorting by Page Length --\n");
+                        lib.SortByPageLength();
+                        PrintList(lib.GetAllBooks());
+                        break;
 
-                case "4": // filter by year
-                    Console.Write("Enter year: ");
-                    int year = int.Parse(Console.ReadLine());
-                    Console.WriteLine();
-                    foreach (Book b in lib.GetBooksAfterYear(year))
-                        Console.WriteLine(b);
-                    break;
+                    case "6":
+                        Console.Write("Enter part of the book title: ");
+                        string titleSearch = (Console.ReadLine() ?? "").Trim();
+                        if (titleSearch.Length == 0)
+                        {
+                            Console.WriteLine("Title cannot be empty.");
+                            break;
+                        }
+                        List<Book> titleResults = lib.GetBooksByTitle(titleSearch);
+                        if (titleResults.Count == 0)
+                            Console.WriteLine("No books with that title.");
+                        else
+                            PrintList(titleResults);
+                        break;
 
-                case "5": // sort by page length (Stretch Goal #6)
-                    Console.WriteLine("-- Sorting by Page Length --\n");
-                    lib.SortByPageLength();
-                    foreach (Book b in lib.GetAllBooks())
-                        Console.WriteLine(b);
-                    break;
-
-                case "6": // search by title
-                    Console.Write("Enter book title: ");
-                    string titleSearch = Console.ReadLine();
-                    Console.WriteLine();
-
-                    List<Book> titleResults = lib.GetBooksByTitle(titleSearch);
-
-                    if (titleResults.Count == 0)
-                        Console.WriteLine("The Library doesn't have any books with that title");
-                    else
-                        foreach (Book b in titleResults)
-                            Console.WriteLine(b);
-                    break;
-
-                case "7": // check out (Stretch Goal 5)
-                    {
+                    case "7":
                         while (true)
                         {
                             Console.Write("Enter part of the title to check out: ");
-                            string checkoutTitle = Console.ReadLine();
-                            Console.WriteLine();
+                            string checkoutTitle = (Console.ReadLine() ?? "").Trim();
+                            if (checkoutTitle.Length == 0)
+                            {
+                                Console.WriteLine("Title cannot be empty.");
+                                continue;
+                            }
 
                             List<Book> checkoutMatches = lib.GetBooksByTitle(checkoutTitle);
-
                             if (checkoutMatches.Count == 0)
                             {
                                 Console.WriteLine("No matching books found. Try again.");
@@ -148,21 +179,20 @@ class Test
                             Console.WriteLine($"Book checked out! Due back in 14 days: {DateTime.Now.AddDays(14):d}");
                             break;
                         }
-
                         break;
-                    }
 
-
-                case "8": // return
-                    {
-                        while (true) 
+                    case "8":
+                        while (true)
                         {
                             Console.Write("Enter part of the title to return: ");
-                            string returnTitle = Console.ReadLine();
-                            Console.WriteLine();
+                            string returnTitle = (Console.ReadLine() ?? "").Trim();
+                            if (returnTitle.Length == 0)
+                            {
+                                Console.WriteLine("Title cannot be empty.");
+                                continue;
+                            }
 
                             List<Book> returnMatches = lib.GetBooksByTitle(returnTitle);
-
                             if (returnMatches.Count == 0)
                             {
                                 Console.WriteLine("No matching books found. Try again.");
@@ -179,26 +209,41 @@ class Test
 
                             bookToReturn.IsCheckedOut = false;
                             Console.WriteLine("Book returned successfully!");
-                            break; 
+                            break;
                         }
-                        break; 
-                    }
+                        break;
 
-                case "9": // sort by title (Stretch Goal #1)
-                    Console.WriteLine("-- Sorting by Title (A–Z) --\n");
-                    foreach (Book b in lib.GetBooksSortedByTitle())
-                        Console.WriteLine(b);
-                    break;
-
+                    case "9":
+                        Console.WriteLine("-- Sorting by Title (A–Z) --\n");
+                        PrintList(lib.GetBooksSortedByTitle());
+                        break;
                 case "0":
-                    Console.WriteLine("-- Exiting Program --");
-                    Environment.Exit(0);
-                    return;
+                case "q":
+                        Console.WriteLine("-- Exiting Program --");
+                        return;
 
-                default:
-                    Console.WriteLine("Invalid option. Try again.");
-                    break;
+                    default:
+                        Console.WriteLine("Invalid option. Try again.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
             }
         }
+    }
+
+    // Helper to print lists cleanly
+    private static void PrintList(List<Book> books)
+    {
+        if (books == null || books.Count == 0)
+        {
+            Console.WriteLine("(no results)");
+            return;
+        }
+
+        foreach (var b in books)
+            Console.WriteLine(b);
     }
 }
