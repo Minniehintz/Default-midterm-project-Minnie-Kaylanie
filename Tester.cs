@@ -8,7 +8,7 @@ class Test
     {
         Library lib = new Library();
 
-        string path = "library-books.csv";
+        string path = "books.csv";
 
         // Check if file exists
         if (File.Exists(path))
@@ -42,7 +42,7 @@ class Test
         else
         {
             Console.WriteLine("File does not exist");
-            return; // stop program if file can’t be found
+            return; // stops program if the file can’t be found
         }
 
         // Main menu loop
@@ -81,8 +81,14 @@ class Test
                     Console.Write("Enter Author name: ");
                     string author = Console.ReadLine();
                     Console.WriteLine();
-                    foreach (Book b in lib.GetBooksByAuthor(author))
-                        Console.WriteLine(b);
+
+                    List<Book> authorResults = lib.GetBooksByAuthor(author);
+
+                    if (authorResults.Count == 0)
+                        Console.WriteLine("The Library doesn't have any books by that author");
+                    else
+                        foreach (Book b in lib.GetBooksByAuthor(author))
+                            Console.WriteLine(b);
                     break;
 
                 case "4": // filter by year
@@ -102,34 +108,81 @@ class Test
 
                 case "6": // search by title
                     Console.Write("Enter book title: ");
-                    string title = Console.ReadLine();
+                    string titleSearch = Console.ReadLine();
                     Console.WriteLine();
-                    Book found = lib.SearchByTitle(title);
-                    if (found != null)
-                        Console.WriteLine(found);
+
+                    List<Book> titleResults = lib.GetBooksByTitle(titleSearch);
+
+                    if (titleResults.Count == 0)
+                        Console.WriteLine("The Library doesn't have any books with that title");
                     else
-                        Console.WriteLine("Book not found.");
+                        foreach (Book b in titleResults)
+                            Console.WriteLine(b);
                     break;
 
-                case "7": // check out (Stretch Goal #5)
-                    Console.Write("Enter title to check out: ");
-                    string checkoutTitle = Console.ReadLine();
-                    Console.WriteLine();
-                    if (lib.CheckOutBook(checkoutTitle))
-                        Console.WriteLine($"Book checked out! Due back in 14 days: {DateTime.Now.AddDays(14):d}");
-                    else
-                        Console.WriteLine("That book is already checked out or doesn't exist.");
-                    break;
+                case "7": // check out (Stretch Goal 5)
+                    {
+                        while (true)
+                        {
+                            Console.Write("Enter part of the title to check out: ");
+                            string checkoutTitle = Console.ReadLine();
+                            Console.WriteLine();
+
+                            List<Book> checkoutMatches = lib.GetBooksByTitle(checkoutTitle);
+
+                            if (checkoutMatches.Count == 0)
+                            {
+                                Console.WriteLine("No matching books found. Try again.");
+                                continue;
+                            }
+
+                            Book bookToCheckout = checkoutMatches[0];
+
+                            if (bookToCheckout.IsCheckedOut)
+                            {
+                                Console.WriteLine("That book is already checked out. Try a different title.");
+                                continue;
+                            }
+
+                            bookToCheckout.IsCheckedOut = true;
+                            Console.WriteLine($"Book checked out! Due back in 14 days: {DateTime.Now.AddDays(14):d}");
+                            break;
+                        }
+
+                        break;
+                    }
+
 
                 case "8": // return
-                    Console.Write("Enter title to return: ");
-                    string returnTitle = Console.ReadLine();
-                    Console.WriteLine();
-                    if (lib.ReturnBook(returnTitle))
-                        Console.WriteLine("Book returned successfully!");
-                    else
-                        Console.WriteLine("That book wasn’t checked out or doesn’t exist.");
-                    break;
+                    {
+                        while (true) 
+                        {
+                            Console.Write("Enter part of the title to return: ");
+                            string returnTitle = Console.ReadLine();
+                            Console.WriteLine();
+
+                            List<Book> returnMatches = lib.GetBooksByTitle(returnTitle);
+
+                            if (returnMatches.Count == 0)
+                            {
+                                Console.WriteLine("No matching books found. Try again.");
+                                continue;
+                            }
+
+                            Book bookToReturn = returnMatches[0];
+
+                            if (!bookToReturn.IsCheckedOut)
+                            {
+                                Console.WriteLine("That book is not currently checked out. Try a different title.");
+                                continue;
+                            }
+
+                            bookToReturn.IsCheckedOut = false;
+                            Console.WriteLine("Book returned successfully!");
+                            break; 
+                        }
+                        break; 
+                    }
 
                 case "9": // sort by title (Stretch Goal #1)
                     Console.WriteLine("-- Sorting by Title (A–Z) --\n");
@@ -139,6 +192,7 @@ class Test
 
                 case "0":
                     Console.WriteLine("-- Exiting Program --");
+                    Environment.Exit(0);
                     return;
 
                 default:
