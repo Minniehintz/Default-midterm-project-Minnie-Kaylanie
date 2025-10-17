@@ -7,7 +7,7 @@ class Test
     static void Main(string[] args)
     {
         Library lib = new Library();
-        string path = "books.csv";
+        string path = "library-books.csv";
 
         // ---- Load CSV safely ----
         try
@@ -222,3 +222,4 @@ class Test
         foreach (var b in books) Console.WriteLine(b);
     }
 }
+
