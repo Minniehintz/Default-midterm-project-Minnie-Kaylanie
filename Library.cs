@@ -38,10 +38,11 @@ class Library
     public List<Book> GetBooksByAuthor(string author)
     {
         List<Book> result = new List<Book>();
+        string search = author.ToLower();
 
         foreach (Book b in books)
         {
-            if (b.Author.Equals(author, StringComparison.OrdinalIgnoreCase))
+            if (b.Author.ToLower().Contains(search))
             {
                 result.Add(b);
             }
@@ -79,18 +80,35 @@ class Library
     }
 
     // Find a book by its title
-    public Book SearchByTitle(string title)
+    public List <Book> GetBooksByTitle(string title)
     {
+        List <Book> result = new List<Book>();  
+        string search = title.ToLower();
+
         foreach (Book b in books)
         {
-            if (b.Title.Equals(title, StringComparison.OrdinalIgnoreCase))
+            if (b.Title.ToLower().Contains(search))
             {
-                return b;
+                result.Add(b);
             }
         }
 
+        return result;
+    }
+
+    public Book SearchByTitle(string title)
+    {
+        string search = title.ToLower();
+        foreach (Book b in books)
+        {
+            if (b.Title.ToLower().Contains(search))
+            {
+                return b; 
+            }
+        }
         return null;
     }
+
 
     // Check out a book
     public bool CheckOutBook(string title)
